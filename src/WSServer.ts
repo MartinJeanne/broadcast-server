@@ -11,13 +11,13 @@ const USERNAMES_PATH = './usernames.json';
 export default class WSServer {
     private server: Server;
     private connectedClients: Map<WebSocket, ClientData>;
-    private usedNamesNb: number;
+    private usedNamesIndex: number[];
 
     constructor(givenPort?: number) {
         const port = givenPort ? givenPort : 8080;
         this.server = new Server({ port: port });
         this.connectedClients = new Map();
-        this.usedNamesNb = 0;
+        this.usedNamesIndex = [];
     }
 
     start() {
@@ -26,13 +26,13 @@ export default class WSServer {
 
             if (this.getConnectionsNb() >= 20) {
                 ws.send('Too much clients albready connected, closing connection.')
-                return ws.close(0);
+                return ws.terminate();
             }
 
             const ip = req.socket.remoteAddress;
             if (!ip) {
                 ws.send('Error, your IP was not retrieved, closing connection.')
-                return ws.close(1);
+                return ws.terminate();
             }
 
             const username = await this.giveName();
@@ -54,8 +54,9 @@ export default class WSServer {
     async stop() {
         this.server.clients.forEach((client) => {
             client.send('The server is closing, bye!');
-            client.close(0);
+            client.terminate();
         });
+        this.server.close();
     }
 
     private onClose() {
@@ -104,8 +105,14 @@ export default class WSServer {
         if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
             throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
 
-        const username = usernames[this.usedNamesNb];
-        this.usedNamesNb++;
-        return username;
+        this.usedNamesIndex = this.usedNamesIndex.sort();
+        for (let i = 0; i < usernames.length; i++) {
+            if (!this.usedNamesIndex.includes(i)) {
+                const username = usernames[i];
+                this.usedNamesIndex.push(i);
+                return username;
+            }
+        }
+        throw new Error('Error, no usernames available');
     }
 }
