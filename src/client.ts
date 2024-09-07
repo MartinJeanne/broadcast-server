@@ -1,13 +1,17 @@
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
+import CLI from './CLI';
 
-const ws = new WebSocket('ws://localhost:8080');
+export default function connectClient(ws: WebSocket) {
+    ws.on('error', console.error);
 
-ws.on('error', console.error);
+    const cli = new CLI();
+    ws.on('open', function open() {
+        cli.onLineListener(line => ws.send(line));
+        cli.onCloseListener(() => console.log('\nHave a great day!'));
+    });
 
-ws.on('open', function open() {
-  ws.send('Hello from client');
-});
-
-ws.on('message', function message(data) {
-  console.log('received: %s', data);
-});
+    ws.on('message', function message(data) {
+        console.log('received: %s', data);
+        cli.listen();
+    });
+}
