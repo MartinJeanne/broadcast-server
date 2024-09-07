@@ -4,19 +4,19 @@ import WSClient from './WSClient';
 import WSServer from './WSServer';
 
 const arg = process.argv[2];
-const host = process.argv[3];
+const param: string = process.argv[3];
 let server: WSServer | null;
 let client: WSClient | null;
 
 switch (arg) {
     case 'start':
-        server = new WSServer();
+        const port = parseInt(param);
+        server = new WSServer(port);
         server.start();
-        console.log('Server started!');
         break;
 
     case 'connect':
-        client = new WSClient(host);
+        client = new WSClient(param);
         client.connect();
         break;
 

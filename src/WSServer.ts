@@ -10,13 +10,14 @@ const USERNAMES_PATH = './usernames.json';
 
 export default class WSServer {
     private server: Server;
+    private port: number;
     private connectedClients: Map<WebSocket, ClientData>;
     private usedNames: string[];
     private availableNames: string[];
 
-    constructor(givenPort?: number) {
-        const port = givenPort ? givenPort : 8080;
-        this.server = new Server({ port: port });
+    constructor(p?: number) {
+        this.port = p && !Number.isNaN(p) ? p : 8080;
+        this.server = new Server({ port: this.port });
         this.connectedClients = new Map();
         this.usedNames = [];
         this.availableNames = [];
@@ -53,6 +54,7 @@ export default class WSServer {
                 this.onClientClose();
             });
         });
+        console.log(`Server started on port: ${this.port}`);
     }
 
     async stop() {
