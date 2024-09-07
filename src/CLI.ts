@@ -2,10 +2,8 @@ import readline from 'node:readline';
 
 export default class CLI {
     private rl: readline.Interface;
-    private promptName: string;
 
-    constructor(name: string) {
-        this.promptName = name;
+    constructor() {
         this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
