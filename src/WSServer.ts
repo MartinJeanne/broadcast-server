@@ -11,16 +11,20 @@ const USERNAMES_PATH = './usernames.json';
 export default class WSServer {
     private server: Server;
     private connectedClients: Map<WebSocket, ClientData>;
-    private usedNamesIndex: number[];
+    private usedNames: string[];
+    private availableNames: string[];
 
     constructor(givenPort?: number) {
         const port = givenPort ? givenPort : 8080;
         this.server = new Server({ port: port });
         this.connectedClients = new Map();
-        this.usedNamesIndex = [];
+        this.usedNames = [];
+        this.availableNames = [];
     }
 
     start() {
+        this.loadNames();
+
         this.server.on('connection', async (ws, req) => {
             ws.on('error', console.error);
 
@@ -59,24 +63,6 @@ export default class WSServer {
         this.server.close();
     }
 
-    private onClientClose() {
-        const updatedClientMap: Map<WebSocket, ClientData> = new Map();
-        this.server.clients.forEach((client) => {
-            const clientData = this.connectedClients.get(client);
-            if (clientData) updatedClientMap.set(client, clientData);
-        });
-
-        this.connectedClients.forEach(async (value, key) => {
-            if (!updatedClientMap.has(key)) {
-                const index = await this.getNameIndex(value.username);
-                this.usedNamesIndex = this.usedNamesIndex.slice(index, 1);
-                console.log(`Disconnected: ${value.username}`);
-            }
-        });
-
-        this.connectedClients = updatedClientMap;
-    }
-
     private onMessage(ws: WebSocket, data: RawData, isBinary: boolean) {
         const clientData = this.connectedClients.get(ws);
         if (!clientData) {
@@ -92,6 +78,24 @@ export default class WSServer {
         });
     }
 
+    private onClientClose() {
+        const updatedClientMap: Map<WebSocket, ClientData> = new Map();
+        this.server.clients.forEach((client) => {
+            const clientData = this.connectedClients.get(client);
+            if (clientData) updatedClientMap.set(client, clientData);
+        });
+
+        this.connectedClients.forEach(async (value, key) => {
+            if (!updatedClientMap.has(key)) {
+                const name = this.usedNames.shift();
+                if (name) this.availableNames.push(name);
+                console.log(`Disconnected: ${value.username}`);
+            }
+        });
+
+        this.connectedClients = updatedClientMap;
+    }
+
     private getConnectionsNb() {
         if (this.server.clients)
             return this.server.clients.size;
@@ -99,33 +103,23 @@ export default class WSServer {
     }
 
     private async giveName(): Promise<string> {
-        const usernames: string[] = await fs.readFile(USERNAMES_PATH, { encoding: 'utf8' })
-            .then(json => JSON.parse(json))
-            .catch(console.error);
-
-
-        if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
-            throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
-
-        this.usedNamesIndex = this.usedNamesIndex.sort();
-        for (let i = 0; i < usernames.length; i++) {
-            if (!this.usedNamesIndex.includes(i)) {
-                const username = usernames[i];
-                this.usedNamesIndex.push(i);
-                return username;
-            }
-        }
-        throw new Error('Error, no usernames available');
+        const name = this.availableNames.shift();
+        if (!name) throw new Error('No available names left')
+        this.usedNames.push(name);
+        return name;
     }
 
-    private async getNameIndex(name: string): Promise<number> {
-        const usernames: string[] = await fs.readFile(USERNAMES_PATH, { encoding: 'utf8' })
-            .then(json => JSON.parse(json))
-            .catch(console.error);
+    private async loadNames() {
+        if (!this.availableNames || this.availableNames.length === 0) {
+            const usernames: string[] = await fs.readFile(USERNAMES_PATH, { encoding: 'utf8' })
+                .then(json => JSON.parse(json))
+                .catch(console.error);
 
-        if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
-            throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
 
-        return usernames.indexOf(name);
+            if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
+                throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
+
+            this.availableNames = usernames;
+        }
     }
 }
