@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 import { connectToWebSocketServer, startWebSocketServer } from './WS';
 
 const arg = process.argv[2];
