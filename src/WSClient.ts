@@ -13,7 +13,7 @@ export default class WSClient {
         let clientName;
         if (name) clientName = name;
         else clientName = 'client'
-        
+
         this.ws = ws;
         this.clientName = clientName;
     }
@@ -22,13 +22,13 @@ export default class WSClient {
         const cli = new CLI(this.clientName);
 
         this.ws.on('open', () => {
-            cli.listen();
             cli.onLineListener(line => this.ws.send(line));
             cli.onCloseListener(() => console.log('\nHave a great day!'));
+            cli.listen();
         });
 
         this.ws.on('message', data => {
-            console.log('received: %s', data);
+            console.log(data.toString());
             cli.listen();
         });
     }

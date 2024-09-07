@@ -1,16 +1,19 @@
 #! /usr/bin/env node
 
-import { connect, startServer } from './WS';
+import WSClient from './WSClient';
+import WSServer from './WSServer';
 
 const arg = process.argv[2];
 switch (arg) {
     case 'start':
-        startServer();
+        const server = new WSServer();
+        server.start();
         console.log('Server started!');
         break;
 
     case 'connect':
-        connect();
+        const client = new WSClient();
+        client.connect();
         break;
 
     default:
