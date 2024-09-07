@@ -6,6 +6,8 @@ type ClientData = {
     ip: string
 }
 
+const USERNAMES_PATH = './usernames.json';
+
 export default class WSServer {
     private server: Server;
     private connectedClients: Map<WebSocket, ClientData>;
@@ -49,6 +51,13 @@ export default class WSServer {
         });
     }
 
+    async stop() {
+        this.server.clients.forEach((client) => {
+            client.send('The server is closing, bye!');
+            client.close(0);
+        });
+    }
+
     private onClose() {
         const updatedClientMap: Map<WebSocket, ClientData> = new Map();
         this.server.clients.forEach((client) => {
@@ -87,13 +96,13 @@ export default class WSServer {
     }
 
     private async giveName(): Promise<string> {
-        const usernames: string[] = await fs.readFile('./usernames.json', { encoding: 'utf8' })
+        const usernames: string[] = await fs.readFile(USERNAMES_PATH, { encoding: 'utf8' })
             .then(json => JSON.parse(json))
             .catch(console.error);
 
 
         if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
-            throw new Error('Error, corrupted JSON: usernames.json');
+            throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
 
         const username = usernames[this.usedNamesNb];
         this.usedNamesNb++;

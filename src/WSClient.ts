@@ -25,4 +25,8 @@ export default class WSClient {
             cli.listen();
         });
     }
+
+    stop() {
+        this.ws.close();
+    }
 }
