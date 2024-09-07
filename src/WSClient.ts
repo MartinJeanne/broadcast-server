@@ -6,6 +6,8 @@ export default class WSClient {
 
     constructor(url?: string) {
         const wsUrl = url ? url : 'ws://localhost:8080';
+        console.log(wsUrl);
+        
         const ws = new WebSocket(wsUrl);
         ws.on('error', console.error);
         this.ws = ws;
@@ -27,6 +29,6 @@ export default class WSClient {
     }
 
     stop() {
-        this.ws.close();
+        this.ws.terminate();
     }
 }

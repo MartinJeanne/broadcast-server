@@ -4,6 +4,7 @@ import WSClient from './WSClient';
 import WSServer from './WSServer';
 
 const arg = process.argv[2];
+const host = process.argv[3];
 let server: WSServer | null;
 let client: WSClient | null;
 
@@ -15,7 +16,7 @@ switch (arg) {
         break;
 
     case 'connect':
-        client = new WSClient();
+        client = new WSClient(host);
         client.connect();
         break;
 
