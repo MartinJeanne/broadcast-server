@@ -26,7 +26,7 @@ npm unlink --global
 ## How to use
 Two commands are available:
 ```bash
-broadcast-server start`
+broadcast-server start
 ```
 
 ```bash
@@ -38,5 +38,5 @@ Execute `broadcast-server start` and a WebSocket Server will be listening on you
 If you wishes to change the port, you can do: `broadcast-server start 8000`
 
 ### Client
-Execute `broadcast-server connect` to connect to a listenning WebSocket server on localhopst port 8080.\
+Execute `broadcast-server connect` to connect to a listenning WebSocket server on localhost port 8080.\
 If you wishes to change the connection url, you can do: `broadcast-server connect ws://your-server:8000`
