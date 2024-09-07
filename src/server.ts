@@ -4,10 +4,12 @@ export default function setupServer(server: Server) {
     server.on('connection', function connection(ws) {
         ws.on('error', console.error);
 
-        ws.on('message', function message(data) {
-            console.log('received: %s', data);
+        ws.on('message', function message(data, isBinary) {
+            console.log(`Received: ${data}`);
+            server.clients.forEach((client) => {
+                if (client !== ws &&client.readyState === WebSocket.OPEN) 
+                    client.send(data, { binary: isBinary });
+            });
         });
-
-        ws.send('Hello from server');
     });
 }

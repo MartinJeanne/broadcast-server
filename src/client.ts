@@ -6,6 +6,7 @@ export default function connectClient(ws: WebSocket) {
 
     const cli = new CLI();
     ws.on('open', function open() {
+        cli.listen();
         cli.onLineListener(line => ws.send(line));
         cli.onCloseListener(() => console.log('\nHave a great day!'));
     });
