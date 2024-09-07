@@ -1,13 +1,12 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import setupServer from './server';
-import connectClient from './client';
+import WSServer from './WSServer';
+import WSClient from './WSClient';
 
-export function startWebSocketServer() {
-  const wss = new WebSocketServer({ port: 8080 });
-  setupServer(wss);
+export function startServer() {
+  const server = new WSServer();
+  server.start();
 }
 
-export function connectToWebSocketServer() {
-  const ws = new WebSocket('ws://localhost:8080');
-  connectClient(ws);
+export function connect(givenName?: string) {
+  const client = new WSClient(givenName);
+  client.connect();
 }

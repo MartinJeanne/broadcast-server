@@ -3,11 +3,11 @@ import readline from 'node:readline';
 export default class CLI {
     private rl: readline.Interface;
 
-    constructor() {
+    constructor(connectionName: string) {
         this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
-            prompt: 'client: ',
+            prompt: `${connectionName}: `,
         });
     }
 
