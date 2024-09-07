@@ -39,14 +39,14 @@ export default class WSServer {
             const client: ClientData = { ip, username };
             this.connectedClients.set(ws, client);
             console.log(`Connected: ${client.username}`);
-            ws.send(`Welcome ${ip}!\nThere's currently ${this.getConnectionsNb()} connected client(s)\nYour name is: ${username}`);
+            ws.send(`Welcome, your ip is: ${ip}\nThere's currently ${this.getConnectionsNb()} connected client(s)\nYour name is: ${username}`);
 
             ws.on('message', (data, isBinary) => {
                 this.onMessage(ws, data, isBinary);
             });
 
             ws.on('close', () => {
-                this.onClose();
+                this.onClientClose();
             });
         });
     }
@@ -59,18 +59,20 @@ export default class WSServer {
         this.server.close();
     }
 
-    private onClose() {
+    private onClientClose() {
         const updatedClientMap: Map<WebSocket, ClientData> = new Map();
         this.server.clients.forEach((client) => {
             const clientData = this.connectedClients.get(client);
             if (clientData) updatedClientMap.set(client, clientData);
         });
 
-        this.connectedClients.forEach((value, key) => {
+        this.connectedClients.forEach(async (value, key) => {
             if (!updatedClientMap.has(key)) {
+                const index = await this.getNameIndex(value.username);
+                this.usedNamesIndex = this.usedNamesIndex.slice(index, 1);
                 console.log(`Disconnected: ${value.username}`);
             }
-        })
+        });
 
         this.connectedClients = updatedClientMap;
     }
@@ -114,5 +116,16 @@ export default class WSServer {
             }
         }
         throw new Error('Error, no usernames available');
+    }
+
+    private async getNameIndex(name: string): Promise<number> {
+        const usernames: string[] = await fs.readFile(USERNAMES_PATH, { encoding: 'utf8' })
+            .then(json => JSON.parse(json))
+            .catch(console.error);
+
+        if (!Array.isArray(usernames) || !usernames.every(n => typeof n === 'string'))
+            throw new Error(`Error, corrupted JSON: ${USERNAMES_PATH}`);
+
+        return usernames.indexOf(name);
     }
 }
