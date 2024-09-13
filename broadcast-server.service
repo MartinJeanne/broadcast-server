@@ -1,0 +1,15 @@
+[Unit]
+Description=WebSocket server and client
+
+[Service]
+ExecStart=/usr/bin/node /var/www/broadcast-server/dist/index.js start
+Restart=always
+User=broadcast-user
+# Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
+Group=broadcast-user
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/var/www/broadcast-server
+
+[Install]
+WantedBy=multi-user.target
