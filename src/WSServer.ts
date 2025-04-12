@@ -16,7 +16,7 @@ export default class WSServer {
     private availableNames: string[];
 
     constructor(p?: number) {
-        this.port = p && !Number.isNaN(p) ? p : 8080;
+        this.port = p && !Number.isNaN(p) ? p : 8082;
         this.server = new Server({ port: this.port });
         this.connectedClients = new Map();
         this.usedNames = [];
